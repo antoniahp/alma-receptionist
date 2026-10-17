@@ -93,3 +93,21 @@ def test_wanting_a_treatment_is_booking():
 def test_a_phone_number_is_not_a_name():
     assert intents.clean_name("611 111 111") is None
     assert intents.clean_name("Me llamo Marta Ruiz") == "Marta Ruiz"
+
+
+@pytest.mark.parametrize("text,expected", [
+    ("Do you have an appointment to get your eyebrows waxed tomorrow?", "cejas_pestanas"),
+    ("Any slot on Tuesday afternoon for a manicure?", "manos_pies"),
+    ("Quiero depilarme las piernas", "depilacion"),
+    ("¿Cuánto cuesta?", None),
+])
+def test_category_in_text(text, expected):
+    assert intents.category_in_text(text) == expected
+
+
+@pytest.mark.parametrize("reply,claims", [
+    ("We don't have any openings on Tuesday afternoon.", True),
+    ("Our opening hours are 10:00 to 20:00.", False),
+])
+def test_claims_availability_catches_openings(reply, claims):
+    assert intents.claims_availability(reply) is claims

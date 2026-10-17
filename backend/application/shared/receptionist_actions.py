@@ -27,7 +27,7 @@ from domain.entities.chat_reply import ChatButton, ChatReply
 from domain.exceptions import SlotNotAvailable
 from domain.rules import customer_messages
 from domain.rules import spanish_format as fmt
-from domain.rules.intent_detector import normalize_part_of_day
+from domain.rules.intent_detector import category_in_text, normalize_part_of_day
 from domain.rules.language import pick, service_name
 from domain.rules.text_normalizer import normalize_text
 
@@ -74,6 +74,15 @@ class ReceptionistActions:
             if any(service.category == key for service in services):
                 rows.append([ChatButton(pick(label, Service.CATEGORY_LABELS_EN[key]), f"cat:{key}{suffix}")])
         return rows
+
+    def buttons_for(self, text):
+        """Si dice de qué tipo es ("cejas", "manicure"), los tratamientos de esa categoría; si no, las categorías."""
+        category = category_in_text(text)
+        if category:
+            rows = self.service_buttons(category)
+            if rows:
+                return rows
+        return self.category_buttons()
 
     def service_buttons(self, category, with_prices=False):
         rows = []

@@ -47,7 +47,28 @@ OWNER_ONLY_PATTERN = re.compile(
 AVAILABILITY_CLAIM = re.compile(
     r"complet|lleno|no (tenemos|hay|queda)n? (nada|hueco|huecos|sitio)|mira lo que tengo|tenemos huecos"
     r"|fully booked|no (slots|availability)|here'?s what i have|let me check what we have|we have (some )?(slots|availability)"
+    r"|\bopenings\b|no opening|don'?t have (any|anything)|nothing (free|available|left)|(we'?re|i'?m|we are) (all |fully )?booked"
+    r"|no (free )?(time|times|space|room)\b|no tengo (nada|hueco|huecos|sitio)|no me queda"
 )
+
+# Si la clienta no nombra un tratamiento concreto pero sí de qué tipo ("cejas", "manicure"), vamos directas a esa categoría.
+# El orden importa: "eyebrows waxed" es de cejas, no de depilación corporal.
+CATEGORY_WORDS = [
+    ("cejas_pestanas", re.compile(r"\b(eye)?brows?\b|\blash|ceja|pestan")),
+    ("manos_pies", re.compile(r"manicur|pedicur|\bnails?\b|\bunas?\b|\bmanos?\b|\bhands?\b|\bfeet\b|\bfoot\b|\bpies?\b")),
+    ("maquillaje", re.compile(r"make-?up|maquill")),
+    ("depilacion", re.compile(r"\bwax|depil|\bcera\b")),
+    ("facial", re.compile(r"facial|\bface\b|\bcara\b|\bskin\b|\bpiel\b|cutis")),
+]
+
+
+def category_in_text(text):
+    """La categoría que nombra la clienta, o None."""
+    normalized = normalize_text(text)
+    for key, pattern in CATEGORY_WORDS:
+        if pattern.search(normalized):
+            return key
+    return None
 
 
 OFFERS_BOOKING = re.compile(

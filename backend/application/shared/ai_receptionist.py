@@ -89,7 +89,7 @@ class AiReceptionist:
                 # El modelo quiere enseñar horas pero no dice de qué: lo buscamos en su mensaje ("gel manicure")
                 service = self.actions.find_service_in_text(text) or self.repositories.services.find_active(conversation.get_state("service_id"))
                 if service is None:
-                    return ChatReply(customer_messages.ask_which_service(), self.actions.category_buttons())
+                    return ChatReply(customer_messages.ask_which_service(), self.actions.buttons_for(text))
                 self.guard = "service_from_text"
                 day = parse_date(decision.date) or intents.parse_day(text, timezone.localdate())
                 return self.actions.offer_slots(conversation, service, day, decision.part_of_day or intents.parse_part_of_day(text))
@@ -128,14 +128,14 @@ class AiReceptionist:
             if wanted_service:
                 return self.actions.offer_slots(conversation, wanted_service, day, intents.parse_part_of_day(text))
             asks = decision.reply.rstrip().endswith("?") and not intents.claims_availability(decision.reply)
-            return ChatReply(decision.reply if asks else customer_messages.ask_which_service(), self.actions.category_buttons())
+            return ChatReply(decision.reply if asks else customer_messages.ask_which_service(), self.actions.buttons_for(text))
 
         # Salvaguarda: si dice que ha reservado o anulado sin haberlo hecho, ofrecemos botones de verdad
         if claims_false_action(decision.reply):
             self.guard = "false_claim"
             if service:
                 return self.actions.offer_slots(conversation, service, intro=customer_messages.ask_to_book_with_buttons())
-            return ChatReply(customer_messages.ask_which_service(), self.actions.category_buttons())
+            return ChatReply(customer_messages.ask_which_service(), self.actions.buttons_for(text))
 
         # Habla de un tratamiento concreto: que pueda reservarlo con un toque, como con las respuestas fijas.
         # Y si el modelo le ofrece cita y ella acaba de decir que sí ("Perfect", "vale"), le enseñamos ya las horas.
