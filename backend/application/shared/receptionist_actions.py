@@ -107,6 +107,21 @@ class ReceptionistActions:
                     best_length = len(word)
         return best_service
 
+    def find_services_in_text(self, text, limit=3):
+        """Los tratamientos que nombra un texto, por orden de aparición ("masaje facial o mascarilla antiestrés")."""
+        normalized = normalize_text(text)
+        found = []
+        for service in self.repositories.services.list(only_active=True):
+            for name in filter(None, [service.name, service.name_en]):
+                start = normalized.find(normalize_text(name))
+                if start != -1:
+                    found.append((start, start + len(name), service))
+        kept = []
+        for start, end, service in sorted(found, key=lambda item: item[0] - item[1]):  # los nombres más largos primero
+            if all(end <= s or start >= e for s, e, _ in kept) and all(service != other for _, _, other in kept):
+                kept.append((start, end, service))
+        return [service for _, _, service in sorted(kept, key=lambda item: item[0])][:limit]
+
     def prices_reply(self):
         return ChatReply(customer_messages.ask_which_category_prices(), self.category_buttons(with_prices=True))
 
@@ -139,7 +154,7 @@ class ReceptionistActions:
                 slots = [slots[int(index * step)] for index in range(MAX_SLOTS_PER_DAY)]
         if not slots:
             if day and intro is None:
-                intro = customer_messages.day_full_intro()
+                intro = customer_messages.day_full_intro(part_of_day)
             slots = GetNextAvailableSlotsQuery(self.repositories).execute(
                 GetNextAvailableSlotsQueryDTO(service_id=service.id, count=3, from_day=day)
             )

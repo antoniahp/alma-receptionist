@@ -125,7 +125,9 @@ def service_info(service):
     return f"Yes! We do {_lower(service)}.{description} It takes about {service.duration_minutes} minutes. Shall I find you a slot?"
 
 
-def day_full_intro():
+def day_full_intro(part_of_day=None):
+    if part_of_day in ("morning", "afternoon"):
+        return f"Oops, nothing free that {part_of_day} 😕 Here’s the closest I have:"
     return random.choice(["That day is fully booked, sorry 😕", "Oops, I have nothing free that day."]) + " Here’s the closest I have:"
 
 

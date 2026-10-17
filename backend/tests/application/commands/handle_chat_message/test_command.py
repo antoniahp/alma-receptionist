@@ -346,3 +346,32 @@ def test_saying_yes_after_the_ai_offers_a_booking_shows_real_slots(salon, next_m
     reply = say(message_service, offer, "web:si", "Perfecto")
 
     assert any(data.startswith("slot:") for data in button_data(reply))
+
+
+def test_if_the_ai_wants_to_show_slots_but_forgets_the_treatment_the_code_finds_it(salon, next_monday, message_service):
+    model = FakeLanguageModelService(json_response={"reply": "Take a look at what I have for Monday:", "action": {"type": "offer_slots", "date": f"{next_monday:%Y-%m-%d}"}})
+
+    reply = say(message_service, model, "web:olvido", "¿Tienes algo el lunes para un masaje?")
+
+    assert any(data.startswith(f"slot:{salon.massage.id}") for data in button_data(reply))
+
+
+def test_when_the_ai_recommends_several_treatments_each_one_becomes_a_button(salon, message_service):
+    facial = baker.make(Service, name="Higiene facial", category="facial", price="45.00", duration_minutes=60, active=True)
+    model = FakeLanguageModelService(
+        json_response={"reply": "Te iría genial un masaje relajante o una higiene facial 😊", "action": {"type": "none"}}
+    )
+
+    reply = say(message_service, model, "web:recomienda", "Me caso en dos semanas, ¿qué me recomiendas?")
+
+    assert button_data(reply) == [f"svc:{salon.massage.id}", f"svc:{facial.id}"]
+
+
+def test_a_full_afternoon_is_not_called_a_full_day(salon, next_monday, message_service, language_model_service):
+    for hour in range(16, 20):
+        for minute in (0, 30):
+            Appointment.objects.create(client=salon.laura, service=salon.massage, start=local_datetime(next_monday, hour, minute))
+
+    reply = say(message_service, language_model_service, "web:tarde", "Quiero cita para un masaje el lunes por la tarde")
+
+    assert "esa tarde" in reply.text
