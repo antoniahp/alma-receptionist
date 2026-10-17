@@ -72,7 +72,7 @@ export default function Mensajes({ status, onChange }) {
         <PushButton push={push} />
       </div>
       <p className="muted">
-        {t('{name} contesta sola a las clientas en tu web y en Telegram. Cuando no sabe algo, la pregunta aparece aquí y te llega un aviso a Telegram. Tu respuesta le llega a la clienta en su chat.', { name })}
+        {t('{name} contesta sola a las clientas en tu web. Cuando no sabe algo, la pregunta aparece aquí y, si activas los avisos, te salta una notificación en el móvil. Tu respuesta le llega a la clienta en su chat.', { name })}
       </p>
       <p className="note">{t('¿Quieres ver cómo habla {name}?', { name })} <a href="/#aura" target="_blank" rel="noreferrer">{t('Abre tu web y escríbele como si fueras una clienta.')}</a></p>
 

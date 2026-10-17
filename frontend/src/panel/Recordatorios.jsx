@@ -47,7 +47,7 @@ export default function Recordatorios({ onChange, telegram }) {
       <p className="note">
         <b>{t('¿Cómo le llega a una clienta?')}</b> {t('Por Telegram, si ha abierto el bot una vez desde su enlace. Al reservar en la web le sale el botón; si reservó por teléfono, copia su enlace aquí abajo y mándaselo por WhatsApp.')}
       </p>
-      {telegram && !telegram.enabled && <p className="note">{t('Telegram no está configurado: los mensajes se guardan como simulados para que veas el texto. Añade el token del bot en backend/.env.')}</p>}
+      {telegram && !telegram.enabled && <p className="note">{t('Los recordatorios por Telegram aún no están activados. Aquí puedes ver los mensajes que se enviarían.')}</p>}
 
       <div className="grid2">
         <div>

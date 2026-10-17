@@ -60,7 +60,7 @@ export default function HelpRequests({ owner = 'Cris', assistant = 'Aura', refre
   return (
     <div className="help-requests">
       <h3 className="sub">{t('Clientas esperando a {owner}', { owner })} {items.length > 0 && <span className="count">{items.length}</span>}</h3>
-      {!items.length && <p className="muted">{t('Nadie esperando. Cuando {assistant} no sepa contestar algo, aparecerá aquí y te avisará por Telegram.', { assistant })}</p>}
+      {!items.length && <p className="muted">{t('Nadie esperando. Cuando {assistant} no sepa contestar algo, aparecerá aquí y te llegará un aviso al móvil.', { assistant })}</p>}
       <div className="help-grid">
         {items.map((hr) => <RequestCard key={hr.id} hr={hr} owner={owner} assistant={assistant} onDone={done} />)}
       </div>
