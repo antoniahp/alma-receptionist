@@ -49,6 +49,7 @@ AVAILABILITY_CLAIM = re.compile(
     r"|fully booked|no (slots|availability)|here'?s what i have|let me check what we have|we have (some )?(slots|availability)"
     r"|\bopenings\b|no opening|don'?t have (any|anything)|nothing (free|available|left)|(we'?re|i'?m|we are) (all |fully )?booked"
     r"|no (free )?(time|times|space|room)\b|no tengo (nada|hueco|huecos|sitio)|no me queda"
+    r"|only open|solo (abrimos|abro|estamos abiert)|we'?re closed (that|in the|on \w+ (morning|afternoon))|cerramos (esa|ese|por la)"
 )
 
 # Si la clienta no nombra un tratamiento concreto pero sí de qué tipo ("cejas", "manicure"), vamos directas a esa categoría.
