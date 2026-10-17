@@ -69,6 +69,11 @@ class HandleChatMessageCommand:
             logger.info("aura_guard forced=health_handoff")
             return self.actions.handoff(conversation, text, say=customer_messages.health_question(settings.BUSINESS["owner"]))
 
+        # Descuentos, regalos, aparcamiento, quejas, menores...: lo decide ella, no el modelo
+        if intents.is_owner_only(text):
+            logger.info("aura_guard forced=owner_only_handoff")
+            return self.actions.handoff(conversation, text)
+
         try:
             return AiReceptionist(self.repositories, self.language_model_service, self.actions).reply(conversation, text)
         except LanguageModelUnavailable as error:

@@ -32,6 +32,32 @@ HEALTH_PATTERN = re.compile(
 )
 
 
+# Lo que solo puede decidir la dueña: descuentos y grupos, regalos, aparcamiento, servicios que no hay,
+# quejas de un servicio anterior y menores. El modelo no tiene esos datos y tiende a inventarlos.
+OWNER_ONLY_PATTERN = re.compile(
+    r"descuento|precio especial|oferta para|grupo de|despedida|discount|special price|group of|hen party"
+    r"|regalo|regalar|gift|voucher"
+    r"|aparca|parking|parkear"
+    r"|\bspa\b|circuito|sauna|jacuzzi"
+    r"|me hicisteis|se me ha (levantado|caido|roto|despegado)|no estoy contenta|from yesterday|chipping|chipped|came off|fell off|not happy with"
+    r"|mi hij[oa]|menor de edad|anos de edad|\b1[0-7] anos\b|my daughter|my son|years old|teenager"
+)
+
+# Frases en las que el modelo afirma algo sobre la agenda: eso solo lo puede decir el código, con los huecos reales
+AVAILABILITY_CLAIM = re.compile(
+    r"complet|lleno|no (tenemos|hay|queda)n? (nada|hueco|huecos|sitio)|mira lo que tengo|tenemos huecos"
+    r"|fully booked|no (slots|availability)|here'?s what i have|let me check what we have|we have (some )?(slots|availability)"
+)
+
+
+def is_owner_only(text):
+    return bool(OWNER_ONLY_PATTERN.search(normalize_text(text)))
+
+
+def claims_availability(text):
+    return bool(AVAILABILITY_CLAIM.search(normalize_text(text)))
+
+
 def is_health_question(text):
     """Alergias, embarazo, medicación... Siempre lo decide la dueña, nunca el modelo."""
     return bool(HEALTH_PATTERN.search(normalize_text(text)))

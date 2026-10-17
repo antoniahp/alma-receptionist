@@ -13,6 +13,7 @@ from domain.entities.ai_decision import ACTION_BOOK, ACTION_CANCEL, ACTION_HANDO
 from domain.entities.chat_reply import ChatReply
 from domain.exceptions import LanguageModelUnavailable
 from domain.rules import customer_messages
+from domain.rules import intent_detector as intents
 from domain.rules.intent_detector import claims_false_action, mentions_owner_handoff
 
 logger = logging.getLogger(__name__)
@@ -110,6 +111,17 @@ class AiReceptionist:
             if decision.action != ACTION_HANDOFF:
                 self.guard = "promised_owner"
             return self.actions.handoff(conversation, text, say=decision.reply)
+
+        # Salvaguarda: pide cita (o el modelo habla de la agenda) pero no ha enseñado horas: las pone el código, las reales
+        wanted_service = service or self.actions.find_service_in_text(text)
+        day = intents.parse_day(text, timezone.localdate())
+        intent = intents.detect_intent(text, settings.BUSINESS["owner"], mentions_service=wanted_service is not None, mentions_day=day is not None)
+        if intent == intents.BOOK or intents.claims_availability(decision.reply):
+            self.guard = "slots_from_code"
+            if wanted_service:
+                return self.actions.offer_slots(conversation, wanted_service, day, intents.parse_part_of_day(text))
+            asks = decision.reply.rstrip().endswith("?") and not intents.claims_availability(decision.reply)
+            return ChatReply(decision.reply if asks else customer_messages.ask_which_service(), self.actions.category_buttons())
 
         # Salvaguarda: si dice que ha reservado o anulado sin haberlo hecho, ofrecemos botones de verdad
         if claims_false_action(decision.reply):
