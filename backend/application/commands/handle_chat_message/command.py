@@ -51,7 +51,9 @@ class HandleChatMessageCommand:
         awaiting = conversation.get_state("awaiting")
 
         if awaiting == "booking_phone" and conversation.client is None:
-            return self.reply_with_booking_phone(conversation, text)
+            reply = self.reply_with_booking_phone(conversation, text)
+            if reply:
+                return reply
 
         if awaiting == "name" and conversation.client is None:
             reply = self.reply_with_name(conversation, text)
@@ -103,6 +105,10 @@ class HandleChatMessageCommand:
         if not phone:
             if intents.is_refusal(text):
                 return ChatReply(customer_messages.phone_needed_for_booking(settings.BUSINESS["phone"]))
+            if not any(char.isdigit() for char in text):
+                # No es un móvil mal escrito, es otra pregunta: dejamos la reserva y le contestamos
+                self.actions.forget_pending(conversation)
+                return None
             return ChatReply(customer_messages.phone_not_understood())
         service, start = self.pending_booking(conversation)
         if service is None:

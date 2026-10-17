@@ -6,7 +6,7 @@ from application.commands.handle_chat_button.command_dto import HandleChatButton
 from application.commands.handle_chat_message.command import HandleChatMessageCommand
 from application.commands.handle_chat_message.command_dto import HandleChatMessageCommandDTO
 from application.shared.receptionist_actions import ReceptionistActions
-from domain.entities import Appointment, ChatMessage, HelpRequest, Service
+from domain.entities import Appointment, ChatMessage, Conversation, HelpRequest, Service
 from infrastructure.repositories.django_repositories import build_django_repositories
 from tests.fakes import FakeLanguageModelService
 from tests.helpers import button_data, local_datetime
@@ -288,3 +288,39 @@ def test_what_only_the_owner_can_decide_goes_to_her_without_asking_the_ai(salon,
     assert HelpRequest.objects.count() == 1
     assert model.received == []
     assert "sin problema" not in reply.text
+
+
+# ---------- no quedarse atascada pidiendo el móvil ----------
+
+
+def pick_a_slot(message_service, language_model_service, key):
+    reply = say(message_service, language_model_service, key, "Quiero cita para un masaje el lunes por la tarde")
+    slot = next(data for data in button_data(reply) if data.startswith("slot:"))
+    assert "móvil" in press(message_service, key, slot).text
+
+
+def test_a_new_question_while_we_wait_for_her_phone_gets_an_answer(salon, next_monday, message_service, language_model_service):
+    pick_a_slot(message_service, language_model_service, "web:atascada")
+
+    reply = say(message_service, language_model_service, "web:atascada", "¿Cuánto cuesta el masaje?")
+
+    assert "45" in reply.text
+    assert Conversation.objects.get(key="web:atascada").get_state("awaiting") is None
+
+
+def test_a_badly_typed_phone_is_asked_again(salon, next_monday, message_service, language_model_service):
+    pick_a_slot(message_service, language_model_service, "web:numero")
+
+    reply = say(message_service, language_model_service, "web:numero", "6 12")
+
+    assert "número" in reply.text
+
+
+def test_starting_again_forgets_the_half_finished_booking(salon, next_monday, message_service, language_model_service):
+    from application.commands.start_chat.command import StartChatCommand
+    from application.commands.start_chat.command_dto import StartChatCommandDTO
+
+    pick_a_slot(message_service, language_model_service, "web:reinicio")
+    StartChatCommand(build_django_repositories(), message_service).execute(StartChatCommandDTO(conversation_key="web:reinicio"))
+
+    assert Conversation.objects.get(key="web:reinicio").get_state("awaiting") is None

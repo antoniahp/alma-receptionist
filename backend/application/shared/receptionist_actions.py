@@ -49,6 +49,10 @@ class ReceptionistActions:
         conversation.set_state(**values)
         self.repositories.conversations.save(conversation, ["state"])
 
+    def forget_pending(self, conversation):
+        """Olvida una reserva o una pregunta a medias: ya no esperamos su móvil ni su nombre."""
+        self.update_state(conversation, awaiting=None, pending_service=None, pending_start=None, pending_phone=None, pending_name=None)
+
     # ---------- botones ----------
 
     def main_menu_buttons(self):

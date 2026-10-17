@@ -16,10 +16,13 @@ class StartChatCommand:
     def execute(self, dto):
         client = self.repositories.clients.find(dto.client_id)
         conversation = self.repositories.conversations.get_or_create(dto.conversation_key, client)
+        actions = ReceptionistActions(self.repositories, self.message_service)
+        # Empezar de nuevo (o volver a abrir el chat) no puede dejarla atascada en "dame tu móvil"
+        actions.forget_pending(conversation)
         first_name = conversation.client.first_name if conversation.client else ""
         # En la web el aviso de privacidad ya está debajo del chat; en Telegram se lo decimos al saludar
         is_telegram = dto.conversation_key.startswith(Conversation.TELEGRAM_PREFIX)
         privacy_url = f"{settings.PUBLIC_SITE_URL}/privacidad" if is_telegram else ""
         text = customer_messages.greeting(first_name, settings.BUSINESS["assistant_name"], settings.BUSINESS["name"], privacy_url)
         self.repositories.conversations.add_message(conversation, ChatMessage.ASSISTANT, text)
-        return ChatReply(text, ReceptionistActions(self.repositories, self.message_service).main_menu_buttons())
+        return ChatReply(text, actions.main_menu_buttons())
