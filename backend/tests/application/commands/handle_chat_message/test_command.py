@@ -375,3 +375,24 @@ def test_a_full_afternoon_is_not_called_a_full_day(salon, next_monday, message_s
     reply = say(message_service, language_model_service, "web:tarde", "Quiero cita para un masaje el lunes por la tarde")
 
     assert "esa tarde" in reply.text
+
+
+# ---------- segunda prueba en producción ----------
+
+
+def test_the_ai_cannot_say_there_are_no_openings(salon, next_monday, message_service):
+    model = FakeLanguageModelService(json_response={"reply": "I'm sorry, but we don't have any openings on Monday afternoon.", "action": {"type": "none"}})
+
+    reply = say(message_service, model, "web:openings", "¿Tienes hueco el lunes por la tarde para un masaje?")
+
+    assert "openings" not in reply.text
+    assert any(data.startswith("slot:") for data in button_data(reply))
+
+
+def test_if_she_only_says_the_kind_of_treatment_she_sees_that_category(salon, message_service):
+    brows = baker.make(Service, name="Diseño de cejas", category="cejas_pestanas", price="12.00", duration_minutes=20, active=True)
+    model = FakeLanguageModelService(json_response={"reply": "Of course!", "action": {"type": "offer_slots"}})
+
+    reply = say(message_service, model, "web:cejas", "Do you have an appointment to get your eyebrows waxed tomorrow?")
+
+    assert button_data(reply) == [f"svc:{brows.id}"]
