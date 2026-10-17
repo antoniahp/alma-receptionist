@@ -111,3 +111,12 @@ def test_category_in_text(text, expected):
 ])
 def test_claims_availability_catches_openings(reply, claims):
     assert intents.claims_availability(reply) is claims
+
+
+@pytest.mark.parametrize("text,asks", [
+    ("Do you have anything on Wednesday morning?", True),
+    ("¿Tienes algo el miércoles?", True),
+    ("¿Abrís el miércoles?", False),
+])
+def test_asks_for_time(text, asks):
+    assert intents.asks_for_time(text) is asks

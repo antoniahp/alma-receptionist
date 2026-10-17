@@ -84,6 +84,17 @@ def offers_booking(reply):
     return bool(OFFERS_BOOKING.search(normalize_text(reply)))
 
 
+ASKS_FOR_TIME = re.compile(
+    r"\b(anything|any (slot|time|space)|free|available|availability|slot|appointment|can i come|book"
+    r"|hueco|libre|tienes algo|teneis algo|hay algo|cita|puedo ir|reserv)"
+)
+
+
+def asks_for_time(text):
+    """Pide hueco ("¿tienes algo el miércoles?"), no pregunta otra cosa sobre ese día ("¿abrís el miércoles?")."""
+    return bool(ASKS_FOR_TIME.search(normalize_text(text)))
+
+
 def is_affirmative(text):
     """Un "sí" corto: "Perfect", "vale", "yes please"."""
     t = normalize_text(text).strip(" !.,")

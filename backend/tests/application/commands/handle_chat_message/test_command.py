@@ -396,3 +396,13 @@ def test_if_she_only_says_the_kind_of_treatment_she_sees_that_category(salon, me
     reply = say(message_service, model, "web:cejas", "Do you have an appointment to get your eyebrows waxed tomorrow?")
 
     assert button_data(reply) == [f"svc:{brows.id}"]
+
+
+def test_asking_for_a_day_right_after_talking_about_a_treatment_shows_its_slots(salon, next_monday, message_service):
+    about = FakeLanguageModelService(json_response={"reply": "El masaje relajante dura una hora.", "action": {"type": "none"}})
+    say(message_service, about, "web:recuerda", "¿Cuánto dura el masaje?")
+    vague = FakeLanguageModelService(json_response={"reply": "¿Qué tratamiento te interesa?", "action": {"type": "none"}})
+
+    reply = say(message_service, vague, "web:recuerda", "¿Tienes algo el lunes por la tarde?")
+
+    assert any(data.startswith(f"slot:{salon.massage.id}") for data in button_data(reply))

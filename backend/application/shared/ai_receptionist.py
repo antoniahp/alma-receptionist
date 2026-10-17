@@ -122,6 +122,11 @@ class AiReceptionist:
         # Salvaguarda: pide cita (o el modelo habla de la agenda) pero no ha enseñado horas: las pone el código, las reales
         wanted_service = service or self.actions.find_service_in_text(text)
         day = intents.parse_day(text, timezone.localdate())
+        # "¿Y el miércoles por la mañana?" justo después de hablar del lifting: el tratamiento es el de antes
+        remembered = self.repositories.services.find_active(conversation.get_state("service_id"))
+        if not wanted_service and remembered and day and intents.asks_for_time(text):
+            self.guard = "slots_for_remembered_service"
+            return self.actions.offer_slots(conversation, remembered, day, intents.parse_part_of_day(text))
         intent = intents.detect_intent(text, settings.BUSINESS["owner"], mentions_service=wanted_service is not None, mentions_day=day is not None)
         if intent == intents.BOOK or intents.claims_availability(decision.reply):
             self.guard = "slots_from_code"
