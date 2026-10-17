@@ -31,6 +31,7 @@ from domain.services.language_model_service import LanguageModelService
 from domain.services.message_service import MessageService
 from infrastructure import dependencies
 from infrastructure.management.commands.aura_eval_cases import CASES
+from infrastructure.services.ollama_language_model_service import OllamaLanguageModelService
 
 SPANISH_WORDS = re.compile(r"[¿¡ñ]|\b(el|la|los|las|que|para|tu|tus|cita|precio|hola|gracias|te|con|por)\b", re.I)
 ENGLISH_WORDS = re.compile(r"\b(the|you|your|for|is|are|we|our|appointment|price|hi|thanks|with|can|would)\b", re.I)
@@ -147,6 +148,9 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f"\nGuardado en {csv_path} y {csv_path.with_suffix('.md')}"))
 
     def run_case(self, mode, lang, message, expected, pattern):
+        if mode == "ai":
+            # Cada mensaje empieza de cero: un fallo puntual no deja al modelo "no disponible" para los siguientes
+            OllamaLanguageModelService.last_check = {"available": None, "checked_at": 0.0}
         model = Recorder(dependencies.get_language_model_service()) if mode == "ai" else Off()
         key = f"{Conversation.WEB_PREFIX}eval-{uuid.uuid4()}"
         started = time.monotonic()
@@ -181,6 +185,7 @@ class Command(BaseCommand):
             "ms": elapsed,
             "prompt_tokens": sum(call.get("prompt_tokens", 0) for call in calls),
             "output_tokens": sum(call.get("output_tokens", 0) for call in calls),
+            "model_error": "; ".join(errors)[:160],
             "reply": reply.text.replace("\n", " "),
         }
 
@@ -217,6 +222,9 @@ class Command(BaseCommand):
                 f"- Al mes ({options['chats_per_month']} conversaciones × {options['messages_per_chat']} mensajes = {per_month} mensajes): "
                 f"~{per_month * statistics.mean(prompt) / 1e6:.2f} M tokens de entrada + {per_month * statistics.mean(output) / 1e6:.2f} M de salida",
             ]
+        model_errors = [r["model_error"] for r in rows if r["model_error"]]
+        if model_errors:
+            lines += ["", "## Errores del modelo", ""] + [f"- {error}" for error in sorted(set(model_errors))[:10]]
         failed = [r for r in rows if not r["ok"]]
         if failed:
             lines += ["", "## Fallos (para revisar a mano)", "", "| Modo | Mensaje | Esperado | Pasó | Respuesta |", "|---|---|---|---|---|"]
