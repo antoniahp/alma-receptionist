@@ -1,0 +1,119 @@
+# Blueprint de Render: en el panel de Render, "New > Blueprint" y elige este repositorio.
+# Las variables con "sync: false" te las pedirá Render al crear el blueprint.
+
+databases:
+  - name: alma-db
+    plan: free
+    databaseName: alma
+    user: alma
+
+envVarGroups:
+  - name: alma-settings
+    envVars:
+      - key: DJANGO_DEBUG
+        value: "false"
+      - key: TIME_ZONE
+        value: Europe/Madrid
+      - key: BUSINESS_NAME
+        sync: false
+      - key: BUSINESS_OWNER
+        sync: false
+      - key: BUSINESS_ADDRESS
+        sync: false
+      - key: BUSINESS_PHONE
+        sync: false
+      - key: ASSISTANT_NAME
+        sync: false
+      # Demo pública para el jurado: datos de ejemplo que se reinician y sin correos reales
+      - key: DEMO_MODE
+        value: "true"
+      - key: DEMO_USERNAME
+        value: demo
+      - key: DEMO_PASSWORD
+        sync: false
+      # IA: en Render no hay GPU, así que se usa Ollama Cloud (mismos modelos abiertos, p. ej. Gemma)
+      - key: LLM_ENABLED
+        value: "true"
+      - key: OLLAMA_URL
+        value: https://ollama.com
+      - key: OLLAMA_MODEL
+        sync: false
+      - key: OLLAMA_API_KEY
+        sync: false
+      - key: SERPAPI_API_KEY
+        sync: false
+      - key: PUBLIC_SITE_URL
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_BOT_USERNAME
+        sync: false
+      - key: TELEGRAM_OWNER_CHAT_ID
+        sync: false
+
+services:
+  - type: web
+    name: alma-backend
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    region: frankfurt
+    healthCheckPath: /api/public/info/
+    envVars:
+      - fromGroup: alma-settings
+      - key: DATABASE_URL
+        fromDatabase:
+          name: alma-db
+          property: connectionString
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      # Pon aquí la URL del frontend, p. ej. https://app.tudominio.tech
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      # Pon aquí la URL del backend, p. ej. https://api.tudominio.tech (para el admin)
+      - key: CSRF_TRUSTED_ORIGINS
+        sync: false
+      - key: OWNER_USERNAME
+        sync: false
+      - key: OWNER_PASSWORD
+        sync: false
+      - key: SEED_DEMO
+        value: "false"
+
+  # El bot de Telegram necesita un "worker" siempre encendido, que en Render es de pago.
+  # Para la demo no hace falta (el chat de la web es la misma recepcionista). Para activarlo, quita los #.
+  # # El bot tiene que estar siempre encendido: en Render los "workers" no tienen plan gratuito.
+  # - type: worker
+  #   name: alma-telegram-bot
+  #   runtime: docker
+  #   rootDir: backend
+  #   dockerfilePath: ./Dockerfile
+  #   dockerContext: .
+  #   dockerCommand: python manage.py run_bot
+  #   plan: starter
+  #   region: frankfurt
+  #   envVars:
+  #     - fromGroup: alma-settings
+  #     - key: DATABASE_URL
+  #       fromDatabase:
+  #         name: alma-db
+  #         property: connectionString
+  #     - key: DJANGO_SECRET_KEY
+  #       generateValue: true
+
+  - type: web
+    name: alma-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      # URL del backend, p. ej. https://api.tudominio.tech (sin barra final)
+      - key: VITE_API_URL
+        sync: false

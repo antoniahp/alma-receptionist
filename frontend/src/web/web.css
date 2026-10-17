@@ -1,0 +1,121 @@
+/* Web del centro, con los mismos colores que el panel de la dueña: arena, verde salvia y terracota suave.
+   El detalle acogedor es el trébol. */
+.site {
+  --f-site-display: var(--f-display);
+  --f-site-body: var(--f-body);
+  --plum: var(--accent); --plum-ink: var(--ink); --grey: var(--muted); --hair: var(--line); --pearl: var(--bg); --white: var(--surface);
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 17px; line-height: 1.6;
+  min-height: 100vh; padding-bottom: 80px;
+}
+body:has(.site) { background: var(--bg) }
+.site h1, .site h2, .site h3 { font-family: var(--f-display); font-weight: 600; letter-spacing: 0 }
+.site a { color: var(--accent) }
+.site :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px }
+.site-loading { padding: 40px 16px }
+
+.site .btn { font-family: var(--f-site-body); font-size: .95rem; padding: 9px 18px }
+.site .btn.big { font-size: 1.02rem; padding: 13px 24px }
+.site .btn.quiet { background: transparent; border-color: var(--plum); color: var(--plum) }
+
+/* Inicio */
+.hero { max-width: 1120px; margin: 0 auto; padding: 56px 16px 40px; display: grid; grid-template-columns: 1.4fr 1fr; gap: 40px; align-items: center }
+.hero h1 { font-size: clamp(2.3rem, 10vw, 4.4rem); line-height: 1 }
+.lead { font-size: 1.15rem; color: var(--grey); max-width: 46ch; margin: 18px 0 26px }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px }
+.hours { font-size: .92rem; color: var(--grey); margin-top: 22px; max-width: 50ch }
+.logo { display: flex; align-items: center; gap: .25em }
+.logo-hero { height: 1.5em; width: auto; flex: none; margin: -.2em .05em -.15em -.1em }
+
+/* Secciones */
+.site-section { max-width: 1120px; margin: 0 auto; padding: 56px 16px 8px; scroll-margin-top: 16px }
+.site-section > h2 { font-size: clamp(1.9rem, 4vw, 2.6rem); line-height: 1.1 }
+.section-intro { color: var(--grey); max-width: 60ch; margin: 10px 0 24px }
+
+/* Carta de tratamientos: como la carta de precios de un spa */
+.menu { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; column-gap: 56px }
+.menu li { padding: 20px 0; border-top: 1px solid var(--hair) }
+.menu-line { display: flex; align-items: baseline; gap: 10px }
+.menu-line h3 { font-size: 1.45rem; margin: 0 }
+.leader { flex: 1; border-bottom: 1px dotted var(--grey); transform: translateY(-5px); min-width: 20px }
+.price { font-size: 1.2rem; font-weight: 600; font-variant-numeric: tabular-nums }
+.menu-detail { color: var(--grey); margin: 6px 0 8px; max-width: 52ch }
+.duration { display: inline-block; font-weight: 600; color: var(--plum-ink); margin-right: 10px }
+.link-button { background: none; border: 0; padding: 0; color: var(--plum); font-weight: 600; cursor: pointer; text-decoration: underline; text-underline-offset: 4px }
+
+/* Reserva */
+.booking { background: var(--white); border: 1px solid var(--hair); border-radius: 20px; padding: 24px; max-width: 760px }
+.booking .step { font-size: 1.25rem; margin: 22px 0 8px }
+.booking .step:first-child { margin-top: 0 }
+.booking .svc { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) }
+.booking .chip { border-radius: 12px }
+.booking .days .chip, .booking .slots .chip { border-radius: 999px }
+.site .chip[aria-pressed="true"] { background: var(--plum); border-color: var(--plum); color: #fff }
+.site .chip[aria-pressed="true"] small { color: #E3ECDF }
+.site .field .label { color: var(--plum-ink); text-transform: none; letter-spacing: 0; font-size: .95rem; font-weight: 600 }
+.site input { background: var(--pearl); font-size: 1rem }
+.confirm { text-align: left; display: flex; flex-direction: column; gap: 12px; align-items: flex-start }
+.confirm h2 { font-size: 2rem }
+.confirm .btn.wide { width: auto }
+
+/* Contacto */
+.contact dl { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin: 20px 0 0 }
+.contact dt { font-weight: 600 }
+.contact dd { margin: 4px 0 0; color: var(--grey) }
+
+/* Chat dentro de la web */
+.site .chat { max-width: 760px; height: 520px }
+
+.site-footer { max-width: 1120px; margin: 64px auto 0; padding: 24px 16px; border-top: 1px solid var(--hair); color: var(--grey); font-size: .9rem; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap }
+.site-footer p { margin: 0 }
+
+/* Barra fija en el móvil: lo que más se hace desde el móvil es pedir cita o llamar */
+.mobile-bar { display: none }
+
+@media (max-width: 760px) {
+  .hero { grid-template-columns: 1fr; padding-top: 28px; gap: 8px }
+  .menu { grid-template-columns: 1fr }
+  .contact dl { grid-template-columns: 1fr }
+  .booking { padding: 18px; border-radius: 16px }
+  .mobile-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); background: rgba(244, 238, 230, .97); border-top: 1px solid var(--hair) }
+  .mobile-bar .btn { padding: 12px }
+}
+.hero .hero-actions { justify-content: flex-start; margin-top: 0 }
+
+/* Pestañas de categoría (carta y formulario) */
+.category-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 18px }
+.category-tab { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 7px 16px; font: inherit; font-size: .95rem; cursor: pointer }
+.category-tab:hover { border-color: var(--accent) }
+.category-tab[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink) }
+.booking .category-tabs { margin-bottom: 10px }
+.price { color: var(--clay) }
+
+/* Tarjeta de contacto del inicio */
+.hero-card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 20px 22px; display: flex; flex-direction: column; gap: 12px; font-size: .95rem }
+.hero-card p { margin: 0; display: flex; flex-direction: column; color: var(--muted) }
+.hero-card b { color: var(--ink); font-weight: 600 }
+
+@media (max-width: 760px) {
+  .hero-card { margin-top: 20px; padding: 16px 18px }
+  .menu li { padding: 14px 0 }
+  .menu-line h3 { font-size: 1.25rem }
+  .menu-detail { margin: 4px 0 6px; font-size: .95rem }
+}
+
+/* Privacidad y páginas legales */
+.consent { align-items: flex-start; margin: 4px 0 14px; font-size: .9rem; line-height: 1.45 }
+.site .consent input[type="checkbox"] { appearance: auto; -webkit-appearance: checkbox; flex: none; margin: 2px 0 0; padding: 0; width: 20px; height: 20px; min-height: 0; border-radius: 4px; accent-color: var(--accent) }
+.privacy-note { font-size: .85rem; color: var(--grey); max-width: 70ch; margin-top: 12px }
+.legal-links { display: flex; gap: 16px; flex-wrap: wrap }
+.legal-top { max-width: 760px; margin: 0 auto; padding: 20px 16px 0; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap }
+.legal-brand { display: flex; align-items: center; gap: 8px; font: 600 1.3rem var(--f-display); color: var(--ink) !important; text-decoration: none }
+.logo-small { height: 40px; width: auto }
+.legal { max-width: 760px; margin: 0 auto; padding: 24px 16px 0 }
+.legal h1 { font-size: clamp(2.2rem, 6vw, 3rem); line-height: 1.05; margin-bottom: 12px }
+.legal h2 { font-size: 1.5rem; margin: 28px 0 6px }
+.legal ul { padding-left: 1.2em }
+.legal li { margin: 4px 0 }
+.legal-missing { background: #F6E7A8; color: var(--ink); padding: 0 4px; border-radius: 4px }
+.legal-warning { background: var(--warn-soft); color: var(--warn); border-radius: 12px; padding: 10px 14px; font-size: .92rem }
+.legal-updated { color: var(--grey); font-size: .85rem; margin-top: 32px }
+.mobile-bar.hidden { display: none }
+@media (max-width: 760px) { .site .chat { height: min(560px, calc(100svh - 120px)) } }

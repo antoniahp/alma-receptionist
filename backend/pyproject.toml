@@ -1,0 +1,49 @@
+[project]
+name = "alma-backend"
+version = "0.1.0"
+description = "Alma: agenda, recepcionista con IA local, avisos por Telegram e inventario que se pide solo para un centro de estética."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "django (>=5.2,<5.3)",
+    "djangorestframework (>=3.15,<4.0)",
+    "django-cors-headers (>=4.4,<5.0)",
+    "requests (>=2.32,<3.0)",
+    "python-dotenv (>=1.0,<2.0)",
+    "dj-database-url (>=3.0,<4.0)",
+    "psycopg[binary] (>=3.2,<4.0)",
+    "whitenoise (>=6.7,<7.0)",
+    "gunicorn (>=23.0)",
+    "pywebpush (>=2.0,<3.0)",
+]
+
+[tool.poetry]
+package-mode = false
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=8.3"
+pytest-django = ">=4.9"
+model-bakery = ">=1.20"
+ruff = ">=0.6"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "core.settings"
+pythonpath = ["."]
+python_files = ["test_*.py"]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = ["ignore:No directory at:UserWarning"]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 140
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["core", "domain", "application", "infrastructure", "tests"]

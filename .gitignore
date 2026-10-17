@@ -1,0 +1,28 @@
+# Variables de entorno: nunca se suben (solo los .env.example)
+.env
+.env.*
+*.env
+!.env.example
+!**/.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+backend/db.sqlite3
+backend/staticfiles/
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# Sistema y editores
+.DS_Store
+.idea/
+.vscode/
+
+# Copias y archivos para borrar: nunca se suben
+_to_delete/
+*.bak
