@@ -4,6 +4,8 @@
 databases:
   - name: alma-db
     plan: free
+    # Misma región que el backend: la conexión interna a la base de datos solo funciona dentro de la misma región
+    region: frankfurt
     databaseName: alma
     user: alma
 
