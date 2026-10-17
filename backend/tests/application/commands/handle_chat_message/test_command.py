@@ -406,3 +406,14 @@ def test_asking_for_a_day_right_after_talking_about_a_treatment_shows_its_slots(
     reply = say(message_service, vague, "web:recuerda", "¿Tienes algo el lunes por la tarde?")
 
     assert any(data.startswith(f"slot:{salon.massage.id}") for data in button_data(reply))
+
+
+def test_the_treatment_the_ai_names_wins_over_a_keyword_guess(salon, message_service):
+    lift = baker.make(Service, name="Permanente de pestañas", category="cejas_pestanas", price="35.00", duration_minutes=45, active=True)
+    extensions = baker.make(Service, name="Extensiones de pestañas", category="cejas_pestanas", price="60.00", duration_minutes=90, active=True, keywords="pestañas")
+    model = FakeLanguageModelService(json_response={"reply": "La permanente de pestañas te dura unas seis semanas.", "action": {"type": "none"}})
+
+    reply = say(message_service, model, "web:lifting", "¿Cuánto dura el lifting de pestañas?")
+
+    assert button_data(reply) == [f"svc:{lift.id}"]
+    assert extensions.id
