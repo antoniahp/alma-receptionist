@@ -344,7 +344,7 @@ class Command(BaseCommand):
                 CP,
                 "Permanente de pestañas",
                 "Pestañas curvadas sin rizador, unas seis semanas.",
-                "permanente,rizar pestañas",
+                "permanente,rizar pestañas,lifting,lash lift",
                 45,
                 "45",
                 42,

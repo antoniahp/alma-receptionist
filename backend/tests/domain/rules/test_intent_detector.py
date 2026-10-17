@@ -120,3 +120,12 @@ def test_claims_availability_catches_openings(reply, claims):
 ])
 def test_asks_for_time(text, asks):
     assert intents.asks_for_time(text) is asks
+
+
+@pytest.mark.parametrize("reply,claims", [
+    ("I'm afraid we're only open in the morning on Tuesday, from 10:00 to 14:00.", True),
+    ("Solo abrimos por la mañana el martes.", True),
+    ("We're open Monday to Saturday. We're closed on Sundays!", False),
+])
+def test_made_up_opening_hours_count_as_an_availability_claim(reply, claims):
+    assert intents.claims_availability(reply) is claims
