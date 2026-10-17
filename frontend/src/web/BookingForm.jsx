@@ -8,6 +8,7 @@ import { t } from '../i18n/index.js'
 export default function BookingForm({ info, service, onServiceChange }) {
   const [day, setDay] = useState(isoDate(new Date()))
   const [slots, setSlots] = useState(null)
+  const [slotsError, setSlotsError] = useState(false)
   const [start, setStart] = useState(null)
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
@@ -21,14 +22,15 @@ export default function BookingForm({ info, service, onServiceChange }) {
 
   const loadSlots = () => {
     if (!service) return
-    setSlots(null); setStart(null)
+    setSlots(null); setStart(null); setSlotsError(false)
     api(`/public/availability/?service=${service}&date=${day}`, { auth: false })
       .then((r) => {
         const next = days.find((d) => isoDate(d) > day)
         if (!r.slots.length && !dayChosen && next) setDay(isoDate(next))
         else setSlots(r.slots)
       })
-      .catch(() => setSlots([]))
+      // Un fallo de red no es una agenda llena: se dice claro y se puede reintentar
+      .catch(() => setSlotsError(true))
   }
   useEffect(loadSlots, [service, day]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -95,7 +97,10 @@ export default function BookingForm({ info, service, onServiceChange }) {
 
       <h3 className="step">3. {t('Hora')}</h3>
       <div className="slots">
-        {slots === null && <span className="muted">{t('Buscando huecos…')}</span>}
+        {slotsError && (
+          <span className="muted">{t('No hemos podido cargar las horas.')} <button type="button" className="btn" onClick={loadSlots}>{t('Reintentar')}</button></span>
+        )}
+        {!slotsError && slots === null && <span className="muted">{t('Buscando huecos…')}</span>}
         {slots?.length === 0 && <span className="muted">{t('Ese día no quedan huecos. Prueba otro.')}</span>}
         {slots?.map((s) => (
           <button type="button" key={s} className="chip mono" aria-pressed={start === s} onClick={() => setStart(s)}>{hour(s)}</button>
