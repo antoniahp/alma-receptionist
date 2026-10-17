@@ -245,3 +245,46 @@ def test_outcome_of_reads_what_really_happened():
     assert outcome_of(ChatReply("hola")) == "text"
     assert outcome_of(ChatReply("elige", [[ChatButton("10:00", "slot:x:202610201000")]])) == "slots"
     assert outcome_of(ChatReply("¿cuál?", [[ChatButton("Uñas", "cat:nails")]])) == "choose_service"
+
+
+# ---------- salvaguardas que encontró la evaluación ----------
+
+
+def test_when_she_wants_a_slot_and_the_ai_only_talks_about_it_the_code_shows_real_slots(salon, next_monday, message_service):
+    model = FakeLanguageModelService(json_response={"reply": "¡Claro! El lunes tenemos huecos. Mira lo que tengo:", "action": {"type": "none"}})
+
+    reply = say(message_service, model, "web:huecos", "Quiero cita para un masaje el lunes")
+
+    assert any(data.startswith("slot:") for data in button_data(reply))
+
+
+def test_the_ai_can_never_say_the_diary_is_full(salon, next_monday, message_service):
+    model = FakeLanguageModelService(json_response={"reply": "Lo siento, estamos completos esa semana.", "action": {"type": "none"}})
+
+    reply = say(message_service, model, "web:completo", "¿Tienes hueco para un masaje el lunes?")
+
+    assert "completos" not in reply.text
+    assert any(data.startswith("slot:") for data in button_data(reply))
+
+
+def test_a_price_question_keeps_the_ai_answer(salon, message_service):
+    model = FakeLanguageModelService(json_response={"reply": "El masaje cuesta 45 €. ¿Te busco hueco?", "action": {"type": "none"}})
+
+    reply = say(message_service, model, "web:precio", "¿Cuánto cuesta el masaje?")
+
+    assert reply.text == "El masaje cuesta 45 €. ¿Te busco hueco?"
+    assert not any(data.startswith("slot:") for data in button_data(reply))
+
+
+@pytest.mark.parametrize(
+    "text",
+    ["¿Hay aparcamiento cerca?", "Do you sell gift vouchers?", "¿Hacéis descuento para un grupo de 6?", "Me hicisteis las uñas ayer y se me ha levantado una"],
+)
+def test_what_only_the_owner_can_decide_goes_to_her_without_asking_the_ai(salon, message_service, text):
+    model = FakeLanguageModelService(json_response={"reply": "Sí, claro, sin problema.", "action": {"type": "none"}})
+
+    reply = say(message_service, model, f"web:{abs(hash(text))}", text)
+
+    assert HelpRequest.objects.count() == 1
+    assert model.received == []
+    assert "sin problema" not in reply.text
