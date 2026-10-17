@@ -50,6 +50,25 @@ AVAILABILITY_CLAIM = re.compile(
 )
 
 
+OFFERS_BOOKING = re.compile(
+    r"\b(book|booking|appointment|slot|reserv|cita|hueco|when (would|does|do) .* suit|cuando te (viene|va))"
+)
+AFFIRMATIVE = re.compile(
+    r"^(si|yes|yeah|yep|ok|okay|vale|perfect|perfecto|perfecta|genial|great|claro|sure|please|por favor|venga|dale|de acuerdo|me interesa|i'?d like that)\b"
+)
+
+
+def offers_booking(reply):
+    """El modelo le está ofreciendo cita ("¿te busco hueco?", "would you like to book?")."""
+    return bool(OFFERS_BOOKING.search(normalize_text(reply)))
+
+
+def is_affirmative(text):
+    """Un "sí" corto: "Perfect", "vale", "yes please"."""
+    t = normalize_text(text).strip(" !.,")
+    return len(t.split()) <= 4 and bool(AFFIRMATIVE.search(t))
+
+
 def is_owner_only(text):
     return bool(OWNER_ONLY_PATTERN.search(normalize_text(text)))
 

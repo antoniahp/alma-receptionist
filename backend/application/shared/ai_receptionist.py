@@ -10,10 +10,11 @@ import logging
 
 from application.shared.conversation_context import ACTION_SCHEMA, build_system_prompt
 from domain.entities.ai_decision import ACTION_BOOK, ACTION_CANCEL, ACTION_HANDOFF, ACTION_OFFER_SLOTS, AiDecision
-from domain.entities.chat_reply import ChatReply
+from domain.entities.chat_reply import ChatButton, ChatReply
 from domain.exceptions import LanguageModelUnavailable
 from domain.rules import customer_messages
 from domain.rules import intent_detector as intents
+from domain.rules.language import pick
 from domain.rules.intent_detector import claims_false_action, mentions_owner_handoff
 
 logger = logging.getLogger(__name__)
@@ -129,4 +130,17 @@ class AiReceptionist:
             if service:
                 return self.actions.offer_slots(conversation, service, intro=customer_messages.ask_to_book_with_buttons())
             return ChatReply(customer_messages.ask_which_service(), self.actions.category_buttons())
+
+        # Habla de un tratamiento concreto: que pueda reservarlo con un toque, como con las respuestas fijas.
+        # Y si el modelo le ofrece cita y ella acaba de decir que sí ("Perfect", "vale"), le enseñamos ya las horas.
+        if wanted_service:
+            self.actions.update_state(conversation, service_id=wanted_service.id)
+        topic = wanted_service or self.repositories.services.find_active(conversation.get_state("service_id"))
+        offers = intents.offers_booking(decision.reply)
+        if topic and offers and intents.is_affirmative(text):
+            self.guard = "slots_after_yes"
+            return self.actions.offer_slots(conversation, topic)
+        if topic and (wanted_service or offers):
+            self.guard = "booking_button"
+            return ChatReply(decision.reply, [[ChatButton(pick("📅 Sí, búscame hueco", "📅 Yes, find me a slot"), f"svc:{topic.id}")]])
         return ChatReply(decision.reply)

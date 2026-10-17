@@ -324,3 +324,25 @@ def test_starting_again_forgets_the_half_finished_booking(salon, next_monday, me
     StartChatCommand(build_django_repositories(), message_service).execute(StartChatCommandDTO(conversation_key="web:reinicio"))
 
     assert Conversation.objects.get(key="web:reinicio").get_state("awaiting") is None
+
+
+# ---------- que siempre pueda reservar con un toque (lo vimos grabando la demo) ----------
+
+
+def test_a_price_answer_from_the_ai_comes_with_the_book_button(salon, message_service):
+    model = FakeLanguageModelService(json_response={"reply": "El masaje relajante cuesta 45 €.", "action": {"type": "none"}})
+
+    reply = say(message_service, model, "web:boton", "¿Cuánto cuesta el masaje?")
+
+    assert reply.text == "El masaje relajante cuesta 45 €."
+    assert f"svc:{salon.massage.id}" in button_data(reply)
+
+
+def test_saying_yes_after_the_ai_offers_a_booking_shows_real_slots(salon, next_monday, message_service):
+    price = FakeLanguageModelService(json_response={"reply": "El masaje relajante cuesta 45 €.", "action": {"type": "none"}})
+    say(message_service, price, "web:si", "¿Cuánto cuesta el masaje?")
+    offer = FakeLanguageModelService(json_response={"reply": "¿Quieres que te reserve una cita? Dime cuándo te viene bien 😊", "action": {"type": "none"}})
+
+    reply = say(message_service, offer, "web:si", "Perfecto")
+
+    assert any(data.startswith("slot:") for data in button_data(reply))
