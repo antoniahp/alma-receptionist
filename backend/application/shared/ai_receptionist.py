@@ -145,7 +145,8 @@ class AiReceptionist:
         # Habla de un tratamiento concreto: que pueda reservarlo con un toque, como con las respuestas fijas.
         # Y si el modelo le ofrece cita y ella acaba de decir que sí ("Perfect", "vale"), le enseñamos ya las horas.
         mentioned = self.actions.find_services_in_text(decision.reply)
-        if not wanted_service and len(mentioned) == 1:
+        # Si Gemma nombra un tratamiento concreto, gana a nuestra búsqueda por palabras ("lifting de pestañas" no son extensiones)
+        if not service and len(mentioned) == 1:
             wanted_service = mentioned[0]
         if not wanted_service and len(mentioned) > 1:
             # Recomienda varios: uno por botón, para que elija con un toque
