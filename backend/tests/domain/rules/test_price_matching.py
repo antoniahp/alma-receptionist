@@ -1,3 +1,4 @@
+import pytest
 from types import SimpleNamespace
 
 from domain.rules.price_matching import is_same_product, is_second_hand, supplier_for_store
@@ -35,3 +36,18 @@ def test_supplier_for_store():
 
     assert supplier_for_store([opi, germaine], "Germaine de Capuccini") == germaine
     assert supplier_for_store([opi, germaine], "Druni") is None
+
+
+@pytest.mark.parametrize(
+    "offer_title",
+    [
+        "Lifting Pestañas Kit, 2026 Kit de Levantamiento de Pestañas",  # otra marca
+        "Refectocil Beautylash Brow Lift Kit lifting cejas",  # cejas, no pestañas
+    ],
+)
+def test_another_brand_or_another_product_is_not_cheaper(offer_title):
+    assert not is_same_product("Refectocil kit lifting de pestañas", offer_title)
+
+
+def test_the_same_product_with_more_words_in_the_shop_still_matches():
+    assert is_same_product("Refectocil kit lifting de pestañas", "Refectocil Kit Lifting de Pestañas 36 aplicaciones")

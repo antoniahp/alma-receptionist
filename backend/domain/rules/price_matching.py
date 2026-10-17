@@ -29,6 +29,12 @@ def sizes(text):
     return {f"{number}{'g' if unit == 'gr' else unit}" for number, unit in found}
 
 
+def brand(product_name):
+    """La marca es la primera palabra del nombre: la app pide escribirlo "con la marca" delante."""
+    words = re.findall(r"[a-z0-9]+", normalize_text(product_name))
+    return next((word for word in words if len(word) > 2 and not word.isdigit()), None)
+
+
 def is_same_product(product_name, offer_title):
     wanted = important_words(product_name)
     if not wanted:
@@ -38,8 +44,16 @@ def is_same_product(product_name, offer_title):
     offer_sizes = sizes(offer_title)
     if wanted_sizes and offer_sizes and not wanted_sizes & offer_sizes:
         return False
-    found = wanted & important_words(offer_title)
-    return len(found) / len(wanted) >= MIN_SHARED_WORDS
+    offer_words = important_words(offer_title)
+    # Otra marca no es "más barato": es otro producto
+    product_brand = brand(product_name)
+    if product_brand and product_brand not in offer_words:
+        return False
+    found = wanted & offer_words
+    # Nombres cortos: tienen que estar todas las palabras ("lifting de pestañas" no es "lifting de cejas").
+    # Nombres largos: se perdona como mucho una (las tiendas abrevian).
+    allowed_missing = 0 if len(wanted) <= 4 else 1
+    return len(wanted - found) <= allowed_missing and len(found) / len(wanted) >= MIN_SHARED_WORDS
 
 
 def is_second_hand(store):
