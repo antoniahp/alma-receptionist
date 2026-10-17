@@ -2,6 +2,7 @@
 
 import json
 import logging
+import re
 import time
 
 import requests
@@ -12,6 +13,19 @@ from domain.services.language_model_service import LanguageModelService
 
 logger = logging.getLogger(__name__)
 STATUS_CACHE_SECONDS = 30
+FENCE = re.compile(r"^```(?:json)?\s*|\s*```$", re.IGNORECASE)
+
+
+def extract_json_object(text):
+    """El JSON de la respuesta, aunque el modelo lo envuelva en ```json ... ``` o le ponga texto alrededor."""
+    text = FENCE.sub("", (text or "").strip())
+    try:
+        return json.loads(text)
+    except ValueError:
+        start, end = text.find("{"), text.rfind("}")
+        if start == -1 or end <= start:
+            raise
+        return json.loads(text[start : end + 1])
 
 
 class OllamaLanguageModelService(LanguageModelService):
@@ -54,12 +68,18 @@ class OllamaLanguageModelService(LanguageModelService):
     def chat(self, messages, schema=None, temperature=0.6):
         if not self.is_available():
             raise LanguageModelUnavailable("El modelo local no está disponible")
-        payload = {"model": settings.OLLAMA_MODEL, "messages": messages, "stream": False, "options": {"temperature": temperature}}
+        # think=False: los modelos que "razonan" antes de responder (como Gemma 4) contestan directamente,
+        # más rápido y más barato, y el JSON llega en la respuesta y no mezclado con el razonamiento.
+        payload = {"model": settings.OLLAMA_MODEL, "messages": messages, "stream": False, "think": False, "options": {"temperature": temperature}}
         if schema:
             payload["format"] = schema
         started = time.monotonic()
         try:
-            response = requests.post(f"{settings.OLLAMA_URL}/api/chat", json=payload, headers=self.headers(), timeout=settings.LLM_TIMEOUT)
+            response = self.post(payload)
+            if response.status_code == 400 and "think" in response.text.lower():
+                # Modelo que no admite la opción "think": se repite sin ella
+                payload.pop("think")
+                response = self.post(payload)
             response.raise_for_status()
             body = response.json()
             content = body["message"]["content"]
@@ -80,15 +100,20 @@ class OllamaLanguageModelService(LanguageModelService):
         )
         return content
 
+    def post(self, payload):
+        return requests.post(f"{settings.OLLAMA_URL}/api/chat", json=payload, headers=self.headers(), timeout=settings.LLM_TIMEOUT)
+
     def write_text(self, prompt, temperature=0.6):
         return self.chat([{"role": "user", "content": prompt}], temperature=temperature).strip()
 
     def write_json(self, messages, schema, temperature=0.6):
         content = self.chat(messages, schema=schema, temperature=temperature)
         try:
-            data = json.loads(content)
+            data = extract_json_object(content)
         except ValueError as error:
-            raise LanguageModelUnavailable("Respuesta no válida del modelo") from error
+            snippet = (content or "").strip().replace("\n", " ")[:120] or "(vacía)"
+            logger.warning("gemma_bad_json model=%s content=%s", settings.OLLAMA_MODEL, snippet)
+            raise LanguageModelUnavailable(f"Respuesta no válida del modelo: {snippet}") from error
         if not isinstance(data, dict):
             raise LanguageModelUnavailable("Respuesta no válida del modelo")
         return data
