@@ -207,6 +207,8 @@ export default {
   'Ese correo no es válido.': 'That email isn’t valid.',
   'Ese correo no es válido. Revísalo, por favor.': 'That email isn’t valid. Please check it.',
   'Ese día no quedan huecos. Prueba otro.': 'No free slots that day. Try another one.',
+  'No hemos podido cargar las horas.': 'We couldn’t load the times.',
+  'Reintentar': 'Try again',
   'Ese hueco ya no está libre. Elige otra hora, por favor.': 'That slot is no longer free. Please pick another time.',
   'Esta cita no está completada.': 'This appointment isn’t completed.',
   'Esta cita ya no está activa.': 'This appointment is no longer active.',
