@@ -27,6 +27,16 @@ def is_short_message(text):
     return len(normalize_text(text).split()) <= 5 and "?" not in text
 
 
+HEALTH_PATTERN = re.compile(
+    r"alergi|allerg|embaraz|pregnan|lactancia|breastfeed|medicac|medication|dermatitis|psoriasis|herida|wound|diabet|marcapasos|pacemaker"
+)
+
+
+def is_health_question(text):
+    """Alergias, embarazo, medicación... Siempre lo decide la dueña, nunca el modelo."""
+    return bool(HEALTH_PATTERN.search(normalize_text(text)))
+
+
 def detect_intent(text, owner_name, mentions_service, mentions_day):
     t = normalize_text(text)
     owner = normalize_text(owner_name)
@@ -38,10 +48,7 @@ def detect_intent(text, owner_name, mentions_service, mentions_day):
         return ASK_IF_BOT
     if re.search(rf"hablar con|queja|reclam|\b{owner}\b|persona real|encargad|speak to|talk to|complain|manager", t):
         return TALK_TO_OWNER
-    if re.search(
-        r"alergi|allerg|embaraz|pregnan|lactancia|breastfeed|medicac|medication|dermatitis|psoriasis|herida|wound|diabet|marcapasos|pacemaker",
-        t,
-    ):
+    if is_health_question(text):
         return HEALTH_QUESTION
     if re.search(
         r"anular|cancelar|cancel|no puedo ir|no podre|can't make it|cannot make it|reschedule|cambiar (la|mi) cita|mover (la|mi) cita|change my appointment",

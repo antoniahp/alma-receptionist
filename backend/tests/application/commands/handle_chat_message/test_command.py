@@ -228,6 +228,16 @@ def test_a_real_question_is_passed_once_and_the_next_one_is_added(salon, message
     assert "aparcamiento" in HelpRequest.objects.get().question
 
 
+def test_health_questions_go_to_the_owner_even_if_the_ai_would_answer(salon, message_service):
+    language_model_service = FakeLanguageModelService(json_response={"reply": "¡Claro! Sin problema.", "action": {"type": "none"}})
+
+    reply = say(message_service, language_model_service, "web:salud", "Soy alérgica al látex, ¿puedo hacerme las pestañas?")
+
+    assert HelpRequest.objects.count() == 1
+    assert language_model_service.received == []
+    assert "Sin problema" not in reply.text
+
+
 def test_outcome_of_reads_what_really_happened():
     from application.shared.ai_receptionist import outcome_of
     from domain.entities.chat_reply import ChatButton, ChatReply

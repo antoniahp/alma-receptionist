@@ -24,9 +24,12 @@ class AiDecision:
     @classmethod
     def from_dict(cls, data):
         action = data.get("action") or {}
+        # Por si el modelo se salta el esquema y manda la acción como texto ("book") en vez de objeto
+        if not isinstance(action, dict):
+            action = {"type": action} if isinstance(action, str) else {}
         action_type = action.get("type") if action.get("type") in ACTIONS else ACTION_NONE
         return cls(
-            reply=(data.get("reply") or "").strip(),
+            reply=str(data.get("reply") or "").strip(),
             action=action_type,
             service_id=action.get("service_id"),
             date=action.get("date"),
