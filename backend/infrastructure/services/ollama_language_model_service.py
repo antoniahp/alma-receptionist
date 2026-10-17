@@ -19,6 +19,7 @@ class OllamaLanguageModelService(LanguageModelService):
 
     # Se comparte entre instancias para no preguntar a Ollama en cada mensaje
     last_check = {"available": None, "checked_at": 0.0}
+    last_usage = None
 
     def headers(self):
         if settings.OLLAMA_API_KEY:
@@ -56,13 +57,28 @@ class OllamaLanguageModelService(LanguageModelService):
         payload = {"model": settings.OLLAMA_MODEL, "messages": messages, "stream": False, "options": {"temperature": temperature}}
         if schema:
             payload["format"] = schema
+        started = time.monotonic()
         try:
             response = requests.post(f"{settings.OLLAMA_URL}/api/chat", json=payload, headers=self.headers(), timeout=settings.LLM_TIMEOUT)
             response.raise_for_status()
-            return response.json()["message"]["content"]
+            body = response.json()
+            content = body["message"]["content"]
         except (requests.RequestException, KeyError, ValueError) as error:
             OllamaLanguageModelService.last_check = {"available": False, "checked_at": time.time()}
+            logger.warning("gemma_error model=%s ms=%d error=%s", settings.OLLAMA_MODEL, (time.monotonic() - started) * 1000, type(error).__name__)
             raise LanguageModelUnavailable(str(error)) from error
+        # Traza de cada llamada (se ve en los logs de Render): modelo, tiempo y tokens que cobra el proveedor
+        self.last_usage = {
+            "model": settings.OLLAMA_MODEL,
+            "ms": round((time.monotonic() - started) * 1000),
+            "prompt_tokens": body.get("prompt_eval_count") or 0,
+            "output_tokens": body.get("eval_count") or 0,
+        }
+        logger.info(
+            "gemma_call model=%s ms=%d prompt_tokens=%d output_tokens=%d json=%s",
+            self.last_usage["model"], self.last_usage["ms"], self.last_usage["prompt_tokens"], self.last_usage["output_tokens"], bool(schema),
+        )
+        return content
 
     def write_text(self, prompt, temperature=0.6):
         return self.chat([{"role": "user", "content": prompt}], temperature=temperature).strip()
