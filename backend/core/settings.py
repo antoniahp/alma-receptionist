@@ -99,7 +99,7 @@ STORAGES = {
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework.authentication.TokenAuthentication"],
+    "DEFAULT_AUTHENTICATION_CLASSES": ["infrastructure.api.expiring_token_authentication.ExpiringTokenAuthentication"],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_THROTTLE_CLASSES": ["rest_framework.throttling.AnonRateThrottle"],
     # Límites por visitante: la web pública es barata; el chat gasta IA, así que tiene su propio límite
@@ -158,6 +158,8 @@ DEMO_PASSWORD = os.getenv("DEMO_PASSWORD", "demo1234")
 # Si es false, la demo funciona igual (datos de ejemplo, sin correos) pero la web no lo anuncia:
 # ni aviso de "estás en la demo" ni usuario y contraseña en la pantalla de entrada (se dan aparte, p. ej. en el post).
 DEMO_HINTS = env_bool("DEMO_HINTS", True)
+# Horas que dura una sesión del panel antes de pedir de nuevo usuario y contraseña
+PANEL_SESSION_HOURS = int(os.getenv("PANEL_SESSION_HOURS", "12"))
 REVIEW_AFTER_VISITS = 3
 SLOT_STEP_MINUTES = 30
 BOOKING_DAYS_AHEAD = 21
