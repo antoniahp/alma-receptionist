@@ -3,12 +3,28 @@ import { lang, t } from './i18n/index.js'
 // En local Vite redirige /api al backend; en Render se indica la URL del backend con VITE_API_URL
 const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
 const TOKEN_KEY = 'panel_token'
+const LOGIN_AT_KEY = 'panel_login_at'
+// Igual que en el servidor (PANEL_SESSION_HOURS): pasado este tiempo se vuelve a pedir la contraseña
+const SESSION_MS = 12 * 60 * 60 * 1000
 
 export function getToken() {
-  try { return localStorage.getItem(TOKEN_KEY) } catch { return null }
+  try {
+    const token = localStorage.getItem(TOKEN_KEY)
+    const loginAt = Number(localStorage.getItem(LOGIN_AT_KEY) || 0)
+    if (token && Date.now() - loginAt > SESSION_MS) { setToken(null); return null }
+    return token
+  } catch { return null }
 }
 export function setToken(token) {
-  try { token ? localStorage.setItem(TOKEN_KEY, token) : localStorage.removeItem(TOKEN_KEY) } catch { /* sin almacenamiento */ }
+  try {
+    if (token) {
+      localStorage.setItem(TOKEN_KEY, token)
+      localStorage.setItem(LOGIN_AT_KEY, String(Date.now()))
+    } else {
+      localStorage.removeItem(TOKEN_KEY)
+      localStorage.removeItem(LOGIN_AT_KEY)
+    }
+  } catch { /* sin almacenamiento */ }
 }
 
 export class ApiError extends Error {
