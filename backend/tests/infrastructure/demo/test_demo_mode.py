@@ -26,6 +26,15 @@ def test_public_info_shows_the_demo_login_only_in_demo_mode(api_client, settings
     assert api_client.get("/api/public/info/").json()["demo_login"] == {"username": "demo", "password": "demo1234"}
 
 
+def test_demo_hints_can_be_hidden_while_the_demo_keeps_working(api_client, settings):
+    settings.DEMO_MODE = True
+    settings.DEMO_HINTS = False
+
+    assert api_client.get("/api/public/info/").json()["demo_login"] is None
+    DemoEmailService().send("pedidos@proveedor.com", "Pedido", "Hola")
+    assert mail.outbox == []
+
+
 def test_seed_creates_the_demo_user(settings):
     settings.DEMO_MODE = True
     settings.DEMO_USERNAME = "demo"

@@ -11,7 +11,7 @@ class GetSystemStatusQuery:
     def execute(self, dto):
         return {
             "business": settings.BUSINESS,
-            "demo": settings.DEMO_MODE,
+            "demo": settings.DEMO_MODE and settings.DEMO_HINTS,
             "llm": {
                 "available": self.language_model_service.is_available(),
                 "model": settings.OLLAMA_MODEL,

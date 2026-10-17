@@ -155,6 +155,9 @@ VAPID_SUBJECT = os.getenv("VAPID_SUBJECT", "mailto:avisos@example.com")
 DEMO_MODE = env_bool("DEMO_MODE", False)
 DEMO_USERNAME = os.getenv("DEMO_USERNAME", "demo")
 DEMO_PASSWORD = os.getenv("DEMO_PASSWORD", "demo1234")
+# Si es false, la demo funciona igual (datos de ejemplo, sin correos) pero la web no lo anuncia:
+# ni aviso de "estás en la demo" ni usuario y contraseña en la pantalla de entrada (se dan aparte, p. ej. en el post).
+DEMO_HINTS = env_bool("DEMO_HINTS", True)
 REVIEW_AFTER_VISITS = 3
 SLOT_STEP_MINUTES = 30
 BOOKING_DAYS_AHEAD = 21

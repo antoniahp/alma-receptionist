@@ -30,7 +30,7 @@ class GetPublicInfoQuery:
             "hours": GetOpeningHoursTextQuery(self.repositories).execute(GetOpeningHoursTextQueryDTO()),
             "telegram_bot": settings.TELEGRAM_BOT_USERNAME,
             # Solo en la demo pública: el usuario de prueba se enseña en la pantalla de entrada
-            "demo_login": {"username": settings.DEMO_USERNAME, "password": settings.DEMO_PASSWORD} if settings.DEMO_MODE else None,
+            "demo_login": {"username": settings.DEMO_USERNAME, "password": settings.DEMO_PASSWORD} if settings.DEMO_MODE and settings.DEMO_HINTS else None,
             "categories": categories,
             "services": services,
         }

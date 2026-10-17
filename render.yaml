@@ -33,6 +33,9 @@ envVarGroups:
         value: demo
       - key: DEMO_PASSWORD
         sync: false
+      # false = la web no muestra el aviso de demo ni el usuario de prueba (se dan en el post)
+      - key: DEMO_HINTS
+        value: "false"
       # IA: en Render no hay GPU, así que se usa Ollama Cloud (mismos modelos abiertos, p. ej. Gemma)
       - key: LLM_ENABLED
         value: "true"
