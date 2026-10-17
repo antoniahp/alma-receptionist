@@ -45,6 +45,7 @@ class HandleChatMessageCommand:
     def reply_to(self, conversation, text):
         # Límites: lo que no tiene que ver con el centro no llega a la IA ni a la dueña
         if is_off_topic(text):
+            logger.info("aura_guard forced=off_topic")
             return ChatReply(customer_messages.off_topic(settings.BUSINESS["name"]), self.actions.main_menu_buttons())
 
         awaiting = conversation.get_state("awaiting")
@@ -67,7 +68,7 @@ class HandleChatMessageCommand:
             return AiReceptionist(self.repositories, self.language_model_service, self.actions).reply(conversation, text)
         except LanguageModelUnavailable as error:
             # Se ve en la terminal del servidor: así sabemos por qué no ha contestado la IA
-            logger.warning("La IA no ha respondido (%s). Contesto con las reglas.", error)
+            logger.warning("aura_fallback reason=%s", str(error)[:80])
             return RulesReceptionist(self.repositories, self.actions).reply(conversation, text)
 
     def reply_with_name(self, conversation, text):

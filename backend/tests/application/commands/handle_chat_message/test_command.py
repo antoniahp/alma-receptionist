@@ -226,3 +226,12 @@ def test_a_real_question_is_passed_once_and_the_next_one_is_added(salon, message
     assert "Se lo añado" in second.text
     assert HelpRequest.objects.count() == 1
     assert "aparcamiento" in HelpRequest.objects.get().question
+
+
+def test_outcome_of_reads_what_really_happened():
+    from application.shared.ai_receptionist import outcome_of
+    from domain.entities.chat_reply import ChatButton, ChatReply
+
+    assert outcome_of(ChatReply("hola")) == "text"
+    assert outcome_of(ChatReply("elige", [[ChatButton("10:00", "slot:x:202610201000")]])) == "slots"
+    assert outcome_of(ChatReply("¿cuál?", [[ChatButton("Uñas", "cat:nails")]])) == "choose_service"
