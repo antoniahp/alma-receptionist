@@ -122,7 +122,10 @@ def service_info(service):
     return f"¡Sí! Hacemos {service.name.lower()}.{description} Son unos {service.duration_minutes} minutos. ¿Te busco hueco?"
 
 
-def day_full_intro():
+def day_full_intro(part_of_day=None):
+    if part_of_day in ("morning", "afternoon"):
+        when = "esa mañana" if part_of_day == "morning" else "esa tarde"
+        return f"Uy, {when} no me queda nada libre 😕 Te dejo lo más cercano que tengo:"
     return (
         random.choice(["Ese día lo tengo completo, lo siento 😕", "Uy, ese día no me queda nada libre."])
         + " Te dejo lo más cercano que tengo:"

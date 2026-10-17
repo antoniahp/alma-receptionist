@@ -14,7 +14,7 @@ from domain.entities.chat_reply import ChatButton, ChatReply
 from domain.exceptions import LanguageModelUnavailable
 from domain.rules import customer_messages
 from domain.rules import intent_detector as intents
-from domain.rules.language import pick
+from domain.rules.language import pick, service_name
 from domain.rules.intent_detector import claims_false_action, mentions_owner_handoff
 
 logger = logging.getLogger(__name__)
@@ -86,7 +86,13 @@ class AiReceptionist:
 
         if decision.action == ACTION_OFFER_SLOTS:
             if service is None:
-                return ChatReply(decision.reply, self.actions.category_buttons())
+                # El modelo quiere enseñar horas pero no dice de qué: lo buscamos en su mensaje ("gel manicure")
+                service = self.actions.find_service_in_text(text) or self.repositories.services.find_active(conversation.get_state("service_id"))
+                if service is None:
+                    return ChatReply(customer_messages.ask_which_service(), self.actions.category_buttons())
+                self.guard = "service_from_text"
+                day = parse_date(decision.date) or intents.parse_day(text, timezone.localdate())
+                return self.actions.offer_slots(conversation, service, day, decision.part_of_day or intents.parse_part_of_day(text))
             return self.actions.offer_slots(conversation, service, parse_date(decision.date), decision.part_of_day, intro=decision.reply)
 
         if decision.action == ACTION_BOOK and service:
@@ -133,6 +139,13 @@ class AiReceptionist:
 
         # Habla de un tratamiento concreto: que pueda reservarlo con un toque, como con las respuestas fijas.
         # Y si el modelo le ofrece cita y ella acaba de decir que sí ("Perfect", "vale"), le enseñamos ya las horas.
+        mentioned = self.actions.find_services_in_text(decision.reply)
+        if not wanted_service and len(mentioned) == 1:
+            wanted_service = mentioned[0]
+        if not wanted_service and len(mentioned) > 1:
+            # Recomienda varios: uno por botón, para que elija con un toque
+            self.guard = "service_buttons"
+            return ChatReply(decision.reply, [[ChatButton(f"📅 {service_name(service)}", f"svc:{service.id}")] for service in mentioned])
         if wanted_service:
             self.actions.update_state(conversation, service_id=wanted_service.id)
         topic = wanted_service or self.repositories.services.find_active(conversation.get_state("service_id"))
