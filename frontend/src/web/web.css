@@ -5,7 +5,7 @@
   --f-site-body: var(--f-body);
   --plum: var(--accent); --plum-ink: var(--ink); --grey: var(--muted); --hair: var(--line); --pearl: var(--bg); --white: var(--surface);
   background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 17px; line-height: 1.6;
-  min-height: 100vh; padding-bottom: 80px;
+  min-height: 100vh; padding-bottom: 24px;
 }
 body:has(.site) { background: var(--bg) }
 .site h1, .site h2, .site h3 { font-family: var(--f-display); font-weight: 600; letter-spacing: 0 }
@@ -69,15 +69,12 @@ body:has(.site) { background: var(--bg) }
 .site-footer p { margin: 0 }
 
 /* Barra fija en el móvil: lo que más se hace desde el móvil es pedir cita o llamar */
-.mobile-bar { display: none }
 
 @media (max-width: 760px) {
   .hero { grid-template-columns: 1fr; padding-top: 28px; gap: 8px }
   .menu { grid-template-columns: 1fr }
   .contact dl { grid-template-columns: 1fr }
   .booking { padding: 18px; border-radius: 16px }
-  .mobile-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); background: rgba(244, 238, 230, .97); border-top: 1px solid var(--hair) }
-  .mobile-bar .btn { padding: 12px }
 }
 .hero .hero-actions { justify-content: flex-start; margin-top: 0 }
 
@@ -117,5 +114,4 @@ body:has(.site) { background: var(--bg) }
 .legal-missing { background: #F6E7A8; color: var(--ink); padding: 0 4px; border-radius: 4px }
 .legal-warning { background: var(--warn-soft); color: var(--warn); border-radius: 12px; padding: 10px 14px; font-size: .92rem }
 .legal-updated { color: var(--grey); font-size: .85rem; margin-top: 32px }
-.mobile-bar.hidden { display: none }
 @media (max-width: 760px) { .site .chat { height: min(560px, calc(100svh - 120px)) } }

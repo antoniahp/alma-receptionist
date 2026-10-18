@@ -30,7 +30,7 @@ from domain.rules import language
 from domain.services.language_model_service import LanguageModelService
 from domain.services.message_service import MessageService
 from infrastructure import dependencies
-from infrastructure.management.commands.aura_eval_cases import CASES
+from infrastructure.management.commands import aura_eval_cases, aura_eval_holdout
 from infrastructure.services.ollama_language_model_service import OllamaLanguageModelService
 
 SPANISH_WORDS = re.compile(r"[¿¡ñ]|\b(el|la|los|las|que|para|tu|tus|cita|precio|hola|gracias|te|con|por)\b", re.I)
@@ -111,12 +111,14 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("--mode", choices=["ai", "rules", "both"], default="both")
         parser.add_argument("--limit", type=int, default=0, help="Solo los N primeros mensajes (para probar)")
+        parser.add_argument("--set", choices=["main", "holdout"], default="main", help="holdout: 30 mensajes nuevos que no se usaron para ajustar nada")
         parser.add_argument("--out", default="eval_results")
         parser.add_argument("--chats-per-month", type=int, default=300)
         parser.add_argument("--messages-per-chat", type=int, default=4)
 
     def handle(self, *args, **options):
-        cases = CASES[: options["limit"]] if options["limit"] else CASES
+        all_cases = aura_eval_holdout.CASES if options["set"] == "holdout" else aura_eval_cases.CASES
+        cases = all_cases[: options["limit"]] if options["limit"] else all_cases
         modes = ["rules", "ai"] if options["mode"] == "both" else [options["mode"]]
         if "ai" in modes and not dependencies.get_language_model_service().is_available():
             raise CommandError("La IA no está disponible: ejecuta antes python manage.py check_ai")
@@ -137,13 +139,14 @@ class Command(BaseCommand):
         out = Path(options["out"])
         out.mkdir(exist_ok=True)
         stamp = datetime.now().strftime("%Y%m%d-%H%M")
-        csv_path = out / f"aura-eval-{stamp}.csv"
+        prefix = "aura-holdout" if options["set"] == "holdout" else "aura-eval"
+        csv_path = out / f"{prefix}-{stamp}.csv"
         with csv_path.open("w", newline="", encoding="utf-8") as file:
             writer = csv.DictWriter(file, fieldnames=list(rows[0].keys()))
             writer.writeheader()
             writer.writerows(rows)
         summary = self.summary(rows, modes, options)
-        (out / f"aura-eval-{stamp}.md").write_text(summary, encoding="utf-8")
+        csv_path.with_suffix(".md").write_text(summary, encoding="utf-8")
         self.stdout.write("\n" + summary)
         self.stdout.write(self.style.SUCCESS(f"\nGuardado en {csv_path} y {csv_path.with_suffix('.md')}"))
 
