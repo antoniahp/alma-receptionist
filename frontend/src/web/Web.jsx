@@ -126,12 +126,6 @@ export default function Web() {
       </main>
 
       <LegalFooter info={info} />
-
-      {/* Con el chat abierto la barra de abajo taparía donde se escribe */}
-      <div className={`mobile-bar ${chatOpen ? 'hidden' : ''}`}>
-        <a className="btn primary" href="#reservar">{t('Pedir cita')}</a>
-        <a className="btn quiet" href={phoneLink}>{t('Llamar')}</a>
-      </div>
     </div>
   )
 }
